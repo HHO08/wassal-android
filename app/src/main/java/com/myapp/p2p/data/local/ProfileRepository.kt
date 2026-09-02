@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.myapp.p2p.data.model.UserProfile
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,7 +15,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ProfileRepository @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val profileDao: ProfileDao
 ) {
 
