@@ -7,6 +7,7 @@ import android.os.Looper
 import com.myapp.p2p.data.model.MessageType
 import com.myapp.p2p.net.signaling.SignalingClient
 import com.myapp.p2p.net.signaling.SignalingMessage
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -48,7 +49,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class RtcManager @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val scope: CoroutineScope,
     private val signaling: SignalingClient,
     private val stunServers: List<String>
