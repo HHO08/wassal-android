@@ -19,12 +19,14 @@ import org.json.JSONObject
 import org.webrtc.AudioSource
 import org.webrtc.AudioTrack as RtcAudioTrack
 import org.webrtc.DataChannel
+import org.webrtc.DefaultVideoDecoderFactory
+import org.webrtc.DefaultVideoEncoderFactory
+import org.webrtc.EglBase
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
 import org.webrtc.MediaStream
 import org.webrtc.PeerConnection
 import org.webrtc.PeerConnectionFactory
-import org.webrtc.RtpTransceiver
 import org.webrtc.SessionDescription
 import org.webrtc.VideoTrack
 import org.webrtc.audio.AudioDeviceModule
@@ -102,22 +104,25 @@ class RtcManager @Inject constructor(
         val builder = PeerConnectionFactory.builder()
         val deviceModule = createAudioDeviceModule()
         builder.setAudioDeviceModule(deviceModule)
-        builder.setVideoEncoderFactory(org.webrtc.PlatformSoftwareVideoEncoderFactory(peerConnectionFactory?.eglBase, true, true))
-        builder.setVideoDecoderFactory(org.webrtc.PlatformSoftwareVideoDecoderFactory(peerConnectionFactory?.eglBase))
+        val eglBase = EglBase.create()
+        builder.setVideoEncoderFactory(
+            DefaultVideoEncoderFactory(eglBase.eglBaseContext, true, true)
+        )
+        builder.setVideoDecoderFactory(DefaultVideoDecoderFactory(eglBase.eglBaseContext))
         peerConnectionFactory = builder.createPeerConnectionFactory()
     }
 
     private fun createAudioDeviceModule(): AudioDeviceModule {
-        val aom = org.webrtc.audio.JavaAudioDeviceModule.builder(context)
-            .setAudioManager(audioManager)
+        val builder = org.webrtc.audio.JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
             .setUseHardwareNoiseSuppressor(true)
-            .createAudioDeviceModule()
-        return aom
+        return builder.createAudioDeviceModule()
     }
 
     private fun connectSignaling() {
-        signaling.onMessage.collect { msg -> handleSignalingMessage(msg) }
+        scope.launch {
+            signaling.onMessage.collect { msg -> handleSignalingMessage(msg) }
+        }
     }
 
     // ---- room / connection -------------------------------------------------
@@ -255,16 +260,13 @@ class RtcManager @Inject constructor(
                 }
             }
 
-            override fun onAddTrack(receiver: RtpTransceiver) { }
             override fun onRemoveStream(stream: MediaStream) { }
-            override fun onIceCandidateRemoved(candidates: Array<out IceCandidate>) { }
+            override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>) { }
             override fun onIceConnectionReceivingChange(receiving: Boolean) { }
             override fun onIceGatheringChange(state: PeerConnection.IceGatheringState) { }
-            override fun onIceStatusChange(state: PeerConnection.IceConnectionState) { }
             override fun onSignalingChange(state: PeerConnection.SignalingState) { }
             override fun onDataChannel(channel: DataChannel) { wireDataChannel(channel) }
             override fun onRenegotiationNeeded() { }
-            override fun onTrack(receiver: RtpTransceiver) { }
         }
 
         peerConnection = peerConnectionFactory?.createPeerConnection(rtcConfig, observer)
@@ -280,7 +282,6 @@ class RtcManager @Inject constructor(
         // Open the data channel for chat.
         wireDataChannel(peerConnection?.createDataChannel("chat", DataChannel.Init().apply {
             ordered = true
-            reliable = true
         }))
 
         // Activate in-call audio mode for best echo/AGC handling.
