@@ -38,7 +38,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.meta.outputs.TAG }}
-          name: MyApp ${{ steps.meta.outputs.TAG }}
+          name: Wassal ${{ steps.meta.outputs.TAG }}
           body: |
             Direct P2P calling app for Android.
 
