@@ -5,7 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -56,15 +58,30 @@ fun ProfileSetupScreen(viewModel: AuthViewModel, onDone: () -> Unit) {
     ) {
         Text("Set up your profile", style = MaterialTheme.typography.headlineMedium)
 
-        avatarBase64?.let {
-            AsyncImage(
-                model = decodeAvatar(it),
-                contentDescription = "avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(96.dp)
-                    .clip(CircleShape)
-            )
+        // Avatar: show the picked photo, or a clean placeholder circle.
+        Box(
+            modifier = Modifier
+                .padding(vertical = 12.dp)
+                .size(96.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (avatarBase64 != null) {
+                AsyncImage(
+                    model = decodeAvatar(avatarBase64!!),
+                    contentDescription = "avatar",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                val letter = name.trim().take(1).ifBlank { "?" }
+                Text(
+                    text = letter,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
         Button(onClick = { picker.launch("image/*") }) {

@@ -1,5 +1,7 @@
 package com.wassal.app.ui.room
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,16 +10,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Switch
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 /**
  * Pre-entry screen shown before actually joining the room. Gives the user a
  * fast, clear choice to lock or unlock the microphone, then enters the call.
+ *
+ * RECORD_AUDIO must be granted before we start the microphone foreground
+ * service, otherwise Android 13+ throws a SecurityException and crashes.
  */
 @Composable
 fun RoomScreen(
@@ -27,6 +35,29 @@ fun RoomScreen(
     onStartCall: () -> Unit,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.joinRoom(roomId, isHost)
+            onStartCall()
+        }
+    }
+
+    fun enterRoom() {
+        val alreadyGranted =
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+        if (alreadyGranted) {
+            viewModel.joinRoom(roomId, isHost)
+            onStartCall()
+        } else {
+            permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,10 +82,7 @@ fun RoomScreen(
         }
 
         Button(
-            onClick = {
-                viewModel.joinRoom(roomId, isHost)
-                onStartCall()
-            },
+            onClick = { enterRoom() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Enter room")

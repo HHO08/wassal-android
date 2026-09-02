@@ -30,16 +30,15 @@ fun AppRoot(authViewModel: AuthViewModel) {
     var pendingRoomId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingIsHost by rememberSaveable { mutableStateOf(false) }
 
-    // Exposed for the Activity to feed deep links into navigation.
-    LaunchedEffect(Unit) {
-        // A real implementation wires the activity intent here. We expose a
-        // companion function that the Activity calls.
-    }
-
     if (authViewModel.showSetup.value) {
+        // Profile not finished yet. The transition to the main app is driven
+        // purely by showSetup flipping to false inside saveProfile. We must
+        // NOT call navController.navigate here: the NavHost graph below is not
+        // composed yet, so navigating would throw IllegalStateException and
+        // crash the app.
         ProfileSetupScreen(
             viewModel = authViewModel,
-            onDone = { navController.navigate("home") }
+            onDone = { /* no-op: state change re-renders into the NavHost */ }
         )
     } else {
         NavHost(navController = navController, startDestination = "home") {

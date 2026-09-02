@@ -42,10 +42,16 @@ class AuthViewModel @Inject constructor(
 
     fun saveProfile(name: String, avatarBase64: String?) {
         viewModelScope.launch {
-            profileRepository.saveProfile(name, avatarBase64)
-            profileRepository.markOnboarded()
-            voiceMessageRecorder.setUserName(name)
-            showSetup.value = false
+            try {
+                profileRepository.saveProfile(name, avatarBase64)
+                profileRepository.markOnboarded()
+                voiceMessageRecorder.setUserName(name)
+            } catch (t: Throwable) {
+                android.util.Log.e("AuthViewModel", "saveProfile failed", t)
+            } finally {
+                // Always leave the setup screen, even on a rare storage error.
+                showSetup.value = false
+            }
         }
     }
 

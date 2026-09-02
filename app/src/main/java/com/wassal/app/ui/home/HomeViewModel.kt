@@ -36,10 +36,14 @@ class HomeViewModel @Inject constructor(
     }
 
     fun shareRoom(deepLink: String) {
-        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, deepLink)
+        try {
+            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, deepLink)
+            }
+            context.startActivity(Intent.createChooser(sendIntent, "Invite to Wassal"))
+        } catch (t: Throwable) {
+            android.util.Log.w("HomeViewModel", "share failed", t)
         }
-        context.startActivity(Intent.createChooser(sendIntent, "Invite to Wassal"))
     }
 }
