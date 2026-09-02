@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MyApp</string>
+    <string name="camera_denied">Recorder is not permitted. This app never asks for camera access.</string>
+</resources>
