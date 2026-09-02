@@ -1,4 +1,4 @@
-# MyApp Android
+# Wassal Android
 
 Direct peer-to-peer calls with excellent voice quality and screen sharing.
 No cloud storage, no central servers after the initial handshake. 100% private.

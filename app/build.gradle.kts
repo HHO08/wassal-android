@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.myapp.p2p"
+    namespace = "com.wassal.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.myapp.p2p"
+        applicationId = "com.wassal.app"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -48,6 +48,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -110,4 +111,7 @@ dependencies {
     // Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
+
+    // Java 8+ core library desugaring (java.time on older devices).
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
